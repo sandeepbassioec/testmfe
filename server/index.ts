@@ -14,6 +14,13 @@ import {
   searchCountries,
   getMasterDataHealth,
   triggerSync,
+  getRegions,
+  getRegionById,
+  getDepartments,
+  getDepartmentById,
+  getEmployees,
+  getEmployeeById,
+  searchEmployees,
 } from "./routes/master-data";
 import { initializeMFEFramework } from "@shared/mfe";
 
@@ -49,6 +56,13 @@ export function createServer() {
   app.get("/api/master/countries", getCountries);
   app.get("/api/master/countries/:id", getCountryById);
   app.get("/api/master/countries/search", searchCountries);
+  app.get("/api/master/regions", getRegions);
+  app.get("/api/master/regions/:id", getRegionById);
+  app.get("/api/master/departments", getDepartments);
+  app.get("/api/master/departments/:id", getDepartmentById);
+  app.get("/api/master/employees", getEmployees);
+  app.get("/api/master/employees/:id", getEmployeeById);
+  app.get("/api/master/employees/search", searchEmployees);
   app.get("/api/master/health", getMasterDataHealth);
   app.post("/api/master/sync", triggerSync);
 
