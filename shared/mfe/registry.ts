@@ -6,6 +6,9 @@
 import { getGlobalEventBus } from './event-bus';
 import type { MFEConfig, RegistryEntry } from './types';
 
+// Export RegistryEntry for use in other modules
+export type { RegistryEntry };
+
 class MFERegistry {
   private entries: Map<string, RegistryEntry> = new Map();
   private eventBus = getGlobalEventBus();

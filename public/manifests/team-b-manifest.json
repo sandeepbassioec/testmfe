@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "teamId": "team-b",
+  "teamName": "Team B - Reporting & Insights",
+  "teamUrl": "https://team-b.company.com",
+  "publishedAt": "2024-02-24T10:00:00Z",
+  "mfes": [
+    {
+      "id": "reports",
+      "name": "Reports Module",
+      "description": "Generate and export comprehensive business reports",
+      "remoteUrl": "http://localhost:5174/mfe/reports.js",
+      "version": "1.0.0",
+      "tags": ["reporting", "export", "pdf"],
+      "dependencies": {
+        "react": "^18.0.0",
+        "pdfkit": "^0.13.0"
+      },
+      "sharedDependencies": ["react"],
+      "nested": false,
+      "requiredVersion": "^1.0.0",
+      "config": {
+        "supportedFormats": ["pdf", "xlsx", "csv"],
+        "maxFileSize": 10485760
+      }
+    },
+    {
+      "id": "settings",
+      "name": "Settings & Configuration",
+      "description": "Team-specific settings and configuration management",
+      "remoteUrl": "http://localhost:5174/mfe/settings.js",
+      "version": "1.1.0",
+      "tags": ["settings", "config", "admin"],
+      "dependencies": {
+        "react": "^18.0.0"
+      },
+      "sharedDependencies": ["react"],
+      "nested": true,
+      "config": {
+        "settingsCategory": "organization",
+        "enableAuditLog": true
+      }
+    },
+    {
+      "id": "notifications",
+      "name": "Notification Center",
+      "description": "Centralized notification and alert management",
+      "remoteUrl": "http://localhost:5174/mfe/notifications.js",
+      "version": "1.0.5",
+      "tags": ["notifications", "alerts", "real-time"],
+      "dependencies": {
+        "react": "^18.0.0"
+      },
+      "sharedDependencies": ["react"],
+      "nested": false,
+      "config": {
+        "enableWebSocket": true,
+        "maxNotifications": 100,
+        "retentionDays": 30
+      }
+    }
+  ],
+  "signature": "sha256:xyz789uvw012"
+}

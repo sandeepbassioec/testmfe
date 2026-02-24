@@ -1,0 +1,66 @@
+{
+  "version": "1.0.0",
+  "teamId": "team-c",
+  "teamName": "Team C - Billing & Commerce",
+  "teamUrl": "https://team-c.company.com",
+  "publishedAt": "2024-02-24T10:00:00Z",
+  "mfes": [
+    {
+      "id": "billing",
+      "name": "Billing Management",
+      "description": "Invoice generation, payment processing, and billing history",
+      "remoteUrl": "http://localhost:5175/mfe/billing.js",
+      "version": "1.2.0",
+      "tags": ["billing", "payments", "invoices"],
+      "dependencies": {
+        "react": "^18.0.0",
+        "stripe": "^1.46.0"
+      },
+      "sharedDependencies": ["react"],
+      "nested": false,
+      "requiredVersion": "^1.0.0",
+      "config": {
+        "paymentProvider": "stripe",
+        "enableRecurringBilling": true,
+        "currencies": ["USD", "EUR", "GBP"]
+      }
+    },
+    {
+      "id": "support",
+      "name": "Support Center",
+      "description": "Customer support ticketing and knowledge base",
+      "remoteUrl": "http://localhost:5175/mfe/support.js",
+      "version": "1.0.3",
+      "tags": ["support", "ticketing", "help"],
+      "dependencies": {
+        "react": "^18.0.0"
+      },
+      "sharedDependencies": ["react"],
+      "nested": false,
+      "config": {
+        "enableChat": true,
+        "supportChannels": ["email", "chat", "phone"],
+        "ticketSLA": 24
+      }
+    },
+    {
+      "id": "marketplace",
+      "name": "Extensions Marketplace",
+      "description": "Browse and install third-party extensions and integrations",
+      "remoteUrl": "http://localhost:5175/mfe/marketplace.js",
+      "version": "1.1.2",
+      "tags": ["marketplace", "extensions", "integrations"],
+      "dependencies": {
+        "react": "^18.0.0"
+      },
+      "sharedDependencies": ["react"],
+      "nested": true,
+      "config": {
+        "marketplaceUrl": "https://marketplace.company.com",
+        "enableRatings": true,
+        "enableReviews": true
+      }
+    }
+  ],
+  "signature": "sha256:pqr456stu789"
+}

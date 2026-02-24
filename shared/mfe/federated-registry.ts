@@ -103,23 +103,34 @@ class FederatedRegistry extends MFERegistry {
       );
 
       // Convert manifest MFEs to registry entries
-      const entries: RegistryEntry[] = manifest.mfes.map(mfe => ({
-        id: mfe.id, // team-{teamId}-{mfeId}
-        name: mfe.name,
-        description: mfe.description,
-        icon: '🔷',
-        tags: mfe.tags || [],
-        config: {
-          teamId,
-          mfeId: mfe.id,
-          remoteUrl: mfe.remoteUrl,
+      const entries: RegistryEntry[] = manifest.mfes.map(mfe => {
+        const entry: RegistryEntry = {
+          id: mfe.id, // team-{teamId}-{mfeId}
+          name: mfe.name,
+          description: mfe.description,
           version: mfe.version,
-          dependencies: mfe.dependencies,
-          sharedDependencies: mfe.sharedDependencies,
-          nested: mfe.nested,
-          ...mfe.config,
-        },
-      }));
+          icon: '🔷',
+          tags: mfe.tags || [],
+          scope: teamId, // Team as scope
+          module: mfe.id,
+          config: {
+            id: mfe.id,
+            scope: teamId,
+            module: mfe.id,
+            exposes: { default: mfe.remoteUrl },
+          },
+        };
+
+        // Store federated-specific metadata in config as any
+        (entry.config as any).teamId = teamId;
+        (entry.config as any).mfeId = mfe.id;
+        (entry.config as any).remoteUrl = mfe.remoteUrl;
+        (entry.config as any).dependencies = mfe.dependencies;
+        (entry.config as any).sharedDependencies = mfe.sharedDependencies;
+        (entry.config as any).nested = mfe.nested;
+
+        return entry;
+      });
 
       // Update team info
       const teamInfo: TeamInfo = {
@@ -160,16 +171,19 @@ class FederatedRegistry extends MFERegistry {
     teamId: string,
     entries: RegistryEntry[]
   ): void {
-    const localEntries = entries.map(entry => ({
-      ...entry,
-      id: `${teamId}-${entry.id}`, // Namespace with team ID
-      config: {
-        teamId,
-        mfeId: entry.id,
-        local: true,
-        ...entry.config,
-      },
-    }));
+    const localEntries = entries.map(entry => {
+      const newEntry: RegistryEntry = {
+        ...entry,
+        id: `${teamId}-${entry.id}`, // Namespace with team ID
+        scope: teamId,
+        config: entry.config,
+      };
+      // Add federated-specific metadata
+      (newEntry.config as any).teamId = teamId;
+      (newEntry.config as any).mfeId = entry.id;
+      (newEntry.config as any).local = true;
+      return newEntry;
+    });
 
     const teamInfo: TeamInfo = {
       teamId,
@@ -328,13 +342,13 @@ class FederatedRegistry extends MFERegistry {
   /**
    * Export registry as JSON
    */
-  export(): {
+  exportRegistry(): {
     teams: TeamInfo[];
     mfes: RegistryEntry[];
   } {
     return {
       teams: Array.from(this.teams.values()),
-      mfes: Array.from(this.entries.values()),
+      mfes: this.getAll(), // Use public getAll() method
     };
   }
 }

@@ -303,8 +303,12 @@ class FederatedModuleLoader {
    * Check if browser supports import maps
    */
   private _supportsImportMaps(): boolean {
-    const script = document.createElement('script');
-    return 'supports' in script && script.supports('importmap');
+    try {
+      const script = document.createElement('script');
+      return 'supports' in script && (script as any).supports?.('importmap');
+    } catch {
+      return false;
+    }
   }
 
   /**
