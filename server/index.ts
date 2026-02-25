@@ -22,6 +22,15 @@ import {
   getEmployeeById,
   searchEmployees,
 } from "./routes/master-data";
+import {
+  createSession,
+  sendMessage,
+  getHistory,
+  pollMessages,
+  deleteMessage,
+  closeSession,
+  chatHealth,
+} from "./routes/chat";
 import { initializeMFEFramework } from "@shared/mfe";
 
 export function createServer() {
@@ -65,6 +74,15 @@ export function createServer() {
   app.get("/api/master/employees/search", searchEmployees);
   app.get("/api/master/health", getMasterDataHealth);
   app.post("/api/master/sync", triggerSync);
+
+  // Chat API routes
+  app.post("/api/chat/sessions/create", createSession);
+  app.post("/api/chat/messages/send", sendMessage);
+  app.get("/api/chat/messages/history", getHistory);
+  app.get("/api/chat/messages/poll", pollMessages);
+  app.delete("/api/chat/messages/:messageId", deleteMessage);
+  app.post("/api/chat/sessions/close", closeSession);
+  app.get("/api/chat/health", chatHealth);
 
   return app;
 }

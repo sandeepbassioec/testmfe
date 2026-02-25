@@ -13,6 +13,7 @@ import {
   Smartphone,
 } from 'lucide-react';
 import MFEHost from '@/components/MFEHost';
+import InAppChat from '@/components/InAppChat';
 import { getGlobalRegistry } from '@shared/mfe';
 
 const Index: React.FC = () => {
@@ -354,6 +355,12 @@ const Index: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      {/* In-App Chat Widget */}
+      <InAppChat
+        userId={`user-${Math.random().toString(36).substr(2, 9)}`}
+        position="bottom-right"
+      />
     </div>
   );
 };
