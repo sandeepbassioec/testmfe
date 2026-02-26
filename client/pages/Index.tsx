@@ -13,15 +13,26 @@ import {
   Smartphone,
 } from 'lucide-react';
 import MFEHost from '@/components/MFEHost';
+import InAppChat from '@/components/InAppChat';
 import { getGlobalRegistry } from '@shared/mfe';
 
 const Index: React.FC = () => {
   const [showDemo, setShowDemo] = useState(false);
+  const [registrySize, setRegistrySize] = useState(0);
   const registry = getGlobalRegistry();
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+
+    // Log registry size
+    try {
+      const size = registry?.size?.() || 0;
+      setRegistrySize(size);
+      console.log('[Index] Registry size:', size);
+    } catch (err) {
+      console.error('[Index] Error getting registry size:', err);
+    }
+  }, [registry]);
 
   const features = [
     {
@@ -72,15 +83,22 @@ const Index: React.FC = () => {
   ];
 
   const stats = [
-    { label: 'Registered MFEs', value: registry.size() },
+    { label: 'Registered MFEs', value: registrySize },
     { label: 'Framework Modules', value: 5 },
     { label: 'Sample Apps', value: 3 },
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
+      {/* Debug Banner */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed top-0 left-0 right-0 bg-blue-600 text-white px-4 py-2 text-xs z-50 font-mono">
+          🚀 App Loaded | Registry MFEs: {registrySize} | React: ✓
+        </div>
+      )}
+
       {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-slate-900/80 backdrop-blur-sm border-b border-slate-700/50 z-40">
+      <nav className="fixed top-0 w-full bg-slate-900/80 backdrop-blur-sm border-b border-slate-700/50 z-40" style={{ marginTop: process.env.NODE_ENV === 'development' ? '32px' : '0' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg flex items-center justify-center">
@@ -354,6 +372,12 @@ const Index: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      {/* In-App Chat Widget */}
+      <InAppChat
+        userId={`user-${Math.random().toString(36).substr(2, 9)}`}
+        position="bottom-right"
+      />
     </div>
   );
 };

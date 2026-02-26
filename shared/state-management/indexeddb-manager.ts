@@ -77,7 +77,13 @@ class IndexedDBManager {
 
     return new Promise((resolve, reject) => {
       try {
-        const request = indexedDB.open(this.dbName, this.dbVersion + 1);
+        // Close existing connection before opening with new version
+        if (this.db) {
+          this.db.close();
+        }
+
+        this.dbVersion += 1;
+        const request = indexedDB.open(this.dbName, this.dbVersion);
 
         request.onupgradeneeded = (event) => {
           const db = (event.target as IDBOpenDBRequest).result;
@@ -102,6 +108,7 @@ class IndexedDBManager {
 
         request.onsuccess = () => {
           this.db = request.result;
+          this.initialized = true;
           resolve();
         };
 

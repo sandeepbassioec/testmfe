@@ -4,15 +4,9 @@ import { getGlobalMasterDataState } from '@shared/state-management/master-data-s
 import { getGlobalEventBus } from '@shared/mfe';
 import { RefreshCw, Database, AlertCircle, CheckCircle } from 'lucide-react';
 
-interface Country {
-  id: number;
-  code: string;
-  name: string;
-  region: string;
-}
-
 const MasterDataMFE: React.FC = () => {
   const [isInitialized, setIsInitialized] = useState(false);
+  const [selectedTable, setSelectedTable] = useState<'countries' | 'regions' | 'departments' | 'employees'>('countries');
   const [syncStats, setSyncStats] = useState<{
     memoryCacheSize: number;
     registeredTables: number;
@@ -20,7 +14,9 @@ const MasterDataMFE: React.FC = () => {
 
   const masterDataState = getGlobalMasterDataState();
   const eventBus = getGlobalEventBus();
-  const { data: countries, loading, error, refetch, syncStatus } = useMasterData<Country>('countries');
+
+  // Use the selected table
+  const { data: tableData, loading, error, refetch, syncStatus } = useMasterData<any>(selectedTable);
 
   // Initialize master data on mount
   useEffect(() => {
@@ -37,6 +33,46 @@ const MasterDataMFE: React.FC = () => {
             { name: 'region', keyPath: 'region' },
           ],
           syncInterval: 5 * 60 * 1000, // 5 minutes
+        });
+
+        // Register regions table
+        await masterDataState.registerTable({
+          name: 'regions',
+          displayName: 'Regions',
+          endpoint: '/api/master/regions',
+          keyPath: 'id',
+          indexes: [
+            { name: 'code', keyPath: 'code', unique: true },
+            { name: 'continent', keyPath: 'continent' },
+          ],
+          syncInterval: 5 * 60 * 1000,
+        });
+
+        // Register departments table
+        await masterDataState.registerTable({
+          name: 'departments',
+          displayName: 'Departments',
+          endpoint: '/api/master/departments',
+          keyPath: 'id',
+          indexes: [
+            { name: 'code', keyPath: 'code', unique: true },
+            { name: 'status', keyPath: 'status' },
+          ],
+          syncInterval: 5 * 60 * 1000,
+        });
+
+        // Register employees table
+        await masterDataState.registerTable({
+          name: 'employees',
+          displayName: 'Employees',
+          endpoint: '/api/master/employees',
+          keyPath: 'id',
+          indexes: [
+            { name: 'email', keyPath: 'email', unique: true },
+            { name: 'department', keyPath: 'department' },
+            { name: 'status', keyPath: 'status' },
+          ],
+          syncInterval: 5 * 60 * 1000,
         });
 
         setIsInitialized(true);
@@ -93,6 +129,23 @@ const MasterDataMFE: React.FC = () => {
         </p>
       </div>
 
+      {/* Table Selection Tabs */}
+      <div className="flex gap-2 border-b border-gray-200">
+        {['countries', 'regions', 'departments', 'employees'].map((table) => (
+          <button
+            key={table}
+            onClick={() => setSelectedTable(table as any)}
+            className={`px-4 py-3 font-medium text-sm transition-colors ${
+              selectedTable === table
+                ? 'text-indigo-600 border-b-2 border-indigo-600'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            {table.charAt(0).toUpperCase() + table.slice(1)}
+          </button>
+        ))}
+      </div>
+
       {/* Status Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg border border-gray-200 p-4">
@@ -116,7 +169,7 @@ const MasterDataMFE: React.FC = () => {
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <div className="text-gray-600 text-sm font-medium">Records</div>
           <div className="text-3xl font-bold text-gray-900 mt-2">
-            {countries.length}
+            {tableData.length}
           </div>
         </div>
 
@@ -152,62 +205,57 @@ const MasterDataMFE: React.FC = () => {
       )}
 
       {/* Data Table */}
-      {!loading && countries.length > 0 && (
+      {!loading && tableData.length > 0 && (
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                    ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                    Code
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                    Region
-                  </th>
+                  {tableData.length > 0 &&
+                    Object.keys(tableData[0]).map((key) => (
+                      <th
+                        key={key}
+                        className="px-6 py-3 text-left text-sm font-semibold text-gray-900"
+                      >
+                        {key.charAt(0).toUpperCase() + key.slice(1)}
+                      </th>
+                    ))}
                 </tr>
               </thead>
               <tbody>
-                {countries.slice(0, 10).map(country => (
+                {tableData.slice(0, 10).map((row, idx) => (
                   <tr
-                    key={country.id}
+                    key={idx}
                     className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
                   >
-                    <td className="px-6 py-3 text-sm text-gray-900">
-                      {country.id}
-                    </td>
-                    <td className="px-6 py-3 text-sm font-mono text-gray-600">
-                      {country.code}
-                    </td>
-                    <td className="px-6 py-3 text-sm text-gray-900">
-                      {country.name}
-                    </td>
-                    <td className="px-6 py-3 text-sm text-gray-600">
-                      {country.region}
-                    </td>
+                    {Object.values(row).map((value, colIdx) => (
+                      <td
+                        key={colIdx}
+                        className="px-6 py-3 text-sm text-gray-900 max-w-xs truncate"
+                      >
+                        {typeof value === 'object'
+                          ? JSON.stringify(value)
+                          : String(value)}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          {countries.length > 10 && (
+          {tableData.length > 10 && (
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 text-sm text-gray-600">
-              Showing 10 of {countries.length} records
+              Showing 10 of {tableData.length} records
             </div>
           )}
         </div>
       )}
 
       {/* No Data State */}
-      {!loading && !error && countries.length === 0 && (
+      {!loading && !error && tableData.length === 0 && (
         <div className="bg-gray-50 rounded-lg border border-gray-200 p-8 text-center">
           <Database className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">No master data available</p>
+          <p className="text-gray-600">No data available for {selectedTable}</p>
         </div>
       )}
 

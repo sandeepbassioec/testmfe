@@ -1,0 +1,66 @@
+{
+  "version": "1.0.0",
+  "teamId": "team-a",
+  "teamName": "Team A - Core Platform",
+  "teamUrl": "https://team-a.company.com",
+  "publishedAt": "2024-02-24T10:00:00Z",
+  "mfes": [
+    {
+      "id": "dashboard",
+      "name": "Dashboard",
+      "description": "Main dashboard with analytics overview and KPIs",
+      "remoteUrl": "http://localhost:5173/mfe/dashboard.js",
+      "version": "1.2.3",
+      "tags": ["core", "analytics", "v1"],
+      "dependencies": {
+        "react": "^18.0.0",
+        "react-dom": "^18.0.0"
+      },
+      "sharedDependencies": ["react", "react-dom"],
+      "nested": true,
+      "requiredVersion": "^1.0.0",
+      "config": {
+        "refreshInterval": 30000,
+        "enablePolling": true,
+        "cacheStrategy": "aggressive"
+      }
+    },
+    {
+      "id": "analytics",
+      "name": "Analytics Engine",
+      "description": "Advanced analytics and reporting capabilities",
+      "remoteUrl": "http://localhost:5173/mfe/analytics.js",
+      "version": "2.0.1",
+      "tags": ["analytics", "reporting", "v2"],
+      "dependencies": {
+        "react": "^18.0.0",
+        "recharts": "^2.10.0"
+      },
+      "sharedDependencies": ["react"],
+      "nested": false,
+      "config": {
+        "chartLibrary": "recharts",
+        "maxDataPoints": 10000
+      }
+    },
+    {
+      "id": "master-data",
+      "name": "Master Data Management",
+      "description": "Centralized master data management with IndexedDB caching",
+      "remoteUrl": "http://localhost:5173/mfe/master-data.js",
+      "version": "1.5.0",
+      "tags": ["data", "master", "cache"],
+      "dependencies": {
+        "react": "^18.0.0"
+      },
+      "sharedDependencies": ["react"],
+      "nested": false,
+      "config": {
+        "enableIndexedDB": true,
+        "syncInterval": 300000,
+        "maxCacheSize": 52428800
+      }
+    }
+  ],
+  "signature": "sha256:abc123def456"
+}
