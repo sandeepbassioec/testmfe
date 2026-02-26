@@ -1,5 +1,6 @@
 import "./global.css";
 
+import React, { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { createRoot } from "react-dom/client";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -13,59 +14,145 @@ import Documentation from "./pages/Documentation";
 import Admin from "./pages/Admin";
 import TeamDashboard from "./pages/TeamDashboard";
 import NotFound from "./pages/NotFound";
+import Simple from "./pages/Simple";
 
 const queryClient = new QueryClient();
 
-/**
- * Initialize federated MFE framework
- */
-const initializeFederation = async () => {
-  const config = getFederationConfig();
+const App = () => {
+  const [initialized, setInitialized] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  initializeMFEFramework({
-    debug: process.env.NODE_ENV === 'development',
-    baseApiUrl: config.orchestrator.url,
-    federated: {
-      enabled: true,
-      localTeamId: 'local',
-      teams: config.teams.map(t => ({
-        teamId: t.teamId,
-        manifestUrl: t.manifestUrl,
-      })),
-      autoDiscover: true,
-    },
-  });
+  useEffect(() => {
+    const initializeFederation = async () => {
+      try {
+        const config = getFederationConfig();
+        console.log('[App] Starting MFE Framework initialization...');
 
-  console.log('[App] MFE Framework initialized with federated support');
+        initializeMFEFramework({
+          debug: process.env.NODE_ENV === 'development',
+          baseApiUrl: config.orchestrator.url,
+          federated: {
+            enabled: true,
+            localTeamId: 'local',
+            teams: config.teams.map(t => ({
+              teamId: t.teamId,
+              manifestUrl: t.manifestUrl,
+            })),
+            autoDiscover: true,
+          },
+        });
+
+        console.log('[App] Base MFE Framework initialized');
+
+        // Initialize federated registry with team config
+        const { getGlobalFederatedRegistry } = await import('@shared/mfe');
+        const federatedRegistry = getGlobalFederatedRegistry({
+          localTeamId: 'local',
+          teams: config.teams.map(t => ({
+            teamId: t.teamId,
+            manifestUrl: t.manifestUrl,
+          })),
+          autoDiscover: true,
+        });
+
+        console.log('[App] Federated registry created, starting team discovery...');
+
+        // Wait for team discovery
+        await federatedRegistry.initialize({
+          localTeamId: 'local',
+          teams: config.teams.map(t => ({
+            teamId: t.teamId,
+            manifestUrl: t.manifestUrl,
+          })),
+          autoDiscover: true,
+        });
+
+        console.log('[App] MFE Framework initialization complete!');
+        setInitialized(true);
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        console.error('[App] MFE Framework initialization error:', errorMsg);
+        setError(errorMsg);
+        setInitialized(true); // Still allow app to render
+      }
+    };
+
+    initializeFederation();
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        {error && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              padding: '20px',
+              backgroundColor: '#dc2626',
+              color: 'white',
+              zIndex: 9999,
+            }}
+          >
+            ⚠️ Initialization Error: {error}
+          </div>
+        )}
+        <BrowserRouter>
+          <Routes>
+            {/* Debug routes */}
+            <Route path="/simple" element={<Simple />} />
+
+            {/* Main routes */}
+            <Route path="/" element={<Index />} />
+            <Route path="/documentation" element={<Documentation />} />
+            <Route path="/admin" element={<Admin />} />
+
+            {/* Federated team routes */}
+            <Route path="/app/:teamId/*" element={<TeamDashboard />} />
+            <Route path="/app/:teamId/:mfeId/*" element={<TeamDashboard />} />
+
+            {/* Catch-all - must be last */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
 };
 
-// Initialize on app startup
-initializeFederation().catch(err => {
-  console.error('[App] Failed to initialize MFE Framework:', err);
+// Add error handling
+window.addEventListener('error', (event) => {
+  console.error('[App] Global error:', event.error);
 });
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Main routes */}
-          <Route path="/" element={<Index />} />
-          <Route path="/documentation" element={<Documentation />} />
-          <Route path="/admin" element={<Admin />} />
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('[App] Unhandled promise rejection:', event.reason);
+});
 
-          {/* Federated team routes */}
-          <Route path="/app/:teamId/*" element={<TeamDashboard />} />
-          <Route path="/app/:teamId/:mfeId/*" element={<TeamDashboard />} />
+console.log('[App] Application starting...');
+console.log('[App] Current URL:', window.location.href);
+console.log('[App] Document ready state:', document.readyState);
 
-          {/* Catch-all - must be last */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const rootElement = document.getElementById("root");
+if (!rootElement) {
+  console.error('[App] Root element with id="root" not found!');
+  console.error('[App] DOM content:',  document.body.innerHTML.substring(0, 500));
 
-createRoot(document.getElementById("root")!).render(<App />);
+  // Fallback: create root element
+  const newRoot = document.createElement('div');
+  newRoot.id = 'root';
+  newRoot.textContent = 'ERROR: Root element not found!';
+  document.body.appendChild(newRoot);
+} else {
+  console.log('[App] Root element found, mounting React app');
+  try {
+    createRoot(rootElement).render(<App />);
+    console.log('[App] React app mounted successfully!');
+  } catch (err) {
+    console.error('[App] Error mounting React app:', err);
+  }
+}

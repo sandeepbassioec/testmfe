@@ -108,11 +108,6 @@ export function initializeMFEFramework(config?: {
 
     if (config?.debug) {
       console.log('[MFE Framework] Federated registry initialized');
-      federatedRegistry.initialize({
-        localTeamId: config.federated.localTeamId,
-        teams: config.federated.teams || [],
-        autoDiscover: config.federated.autoDiscover !== false,
-      });
     }
   }
 
